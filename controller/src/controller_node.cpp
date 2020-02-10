@@ -1,51 +1,37 @@
 #include "ros/ros.h"
-#include "manipulator_msgs/DoF3.h"
 #include <eigen3/Eigen/Eigen>
+#include <geometry_msgs/Point.h>
 #include <cmath>
 
-const float PI = 3.1419;
+const float PI = 3.14159;
 bool greater = true;
 
 using namespace Eigen;
-const int L1 = 25;
-const int L2 = 50;
-const int L3 = 50;
 
 double inc = 0;
 int sw = 1;
 
 double Time_now, Time_Start;
 Eigen::Vector3d msg;
-manipulator_msgs::DoF3 _msg;
+geometry_msgs::Point _msg;
 Eigen::Vector3d Start;
 Eigen::Vector3d Inter;
 Eigen::Vector3d End;
 Eigen::Vector3d Tmp;
 Eigen::Vector3d End_Pos;
 
-
-void joint_callback(const manipulator_msgs::DoF3::ConstPtr& msg){
-    std::cout << "Joint 1\t" << msg->joint_1 <<std::endl;
-    std::cout << "Joint 2\t" << msg->joint_2 <<std::endl;
-    std::cout << "Joint 3\t" << msg->joint_3 <<std::endl;
-}
-
-void obstacle_1_callback(const manipulator_msgs::DoF3::ConstPtr& msg){
-  Start.x() = msg->joint_1;  Start.y() = msg->joint_2;  Start.z() = msg->joint_3;
+void obstacle_1_callback(const geometry_msgs::Point::ConstPtr& msg){
+  Start.x() = msg->x;  Start.y() = msg->y;  Start.z() = msg->z;
 
 }
 
-void obstacle_2_callback(const manipulator_msgs::DoF3::ConstPtr& msg){
-  Inter.x() = msg->joint_1;  Inter.y() = msg->joint_2;  Inter.z() = msg->joint_3;
+void obstacle_2_callback(const geometry_msgs::Point::ConstPtr& msg){
+  Inter.x() = msg->x;  Inter.y() = msg->y;  Inter.z() = msg->z;
 
 }
 
-void obstacle_3_callback(const manipulator_msgs::DoF3::ConstPtr& msg){
-  End.x() = msg->joint_1;   End.y() = msg->joint_2;     End.z() = msg->joint_3;
-}
-
-Eigen::Vector3d forward_kinematic(double joint_1, double joint_2, double joint_3){
-    double x,y,z;
+void obstacle_3_callback(const geometry_msgs::Point::ConstPtr& msg){
+  End.x() = msg->x;   End.y() = msg->y;     End.z() = msg->z;
 }
 
 Eigen::Vector3d bezier_curve(Eigen::Vector3d Start,Eigen::Vector3d Inter, Eigen::Vector3d End, double Time){
@@ -65,37 +51,15 @@ Eigen::Vector3d bezier_curve(Eigen::Vector3d Start,Eigen::Vector3d Inter, Eigen:
   return End_Pos;
 }
 
-Eigen::Vector3d inverse_kinematic(double x, double y, double z){
-
-    double Joint1,Joint2,Joint3;
-    double s3,c3;
-
-    Eigen::Vector3d result;
-
-    Joint1 = std::atan2(y,x);
-
-    c3 = (pow(x,2) + pow(y,2) + pow((z - L1),2) - pow(L2,2) - pow(L3,2)) / (2*L2*L3);
-    s3 = sqrt(1-pow(c3,2));
-
-    Joint3 = atan2(s3,c3);
-    Joint2 = atan2((L3*s3),(L2 + (L3*c3)));
-
-    result(0) = Joint1;
-    result(1) = Joint2;
-    result(2) = Joint3;
-
-    return result;
-}
 
 int main(int argc, char **argv) {
 
   ros::init(argc,argv, "controller_node");
   ros::NodeHandle nh_;
-  ros::Subscriber joint_sub = nh_.subscribe("/servo_pos",1000, joint_callback);
   ros::Subscriber obstacle_1 = nh_.subscribe("/Obstacle_1",1000, obstacle_1_callback);
   ros::Subscriber obstacle_2 = nh_.subscribe("/Obstacle_2",1000, obstacle_2_callback);
   ros::Subscriber obstacle_3 = nh_.subscribe("/Obstacle_3",1000, obstacle_3_callback);
-  ros::Publisher joint_pub = nh_.advertise<manipulator_msgs::DoF3>("/servo_cmd", 1000);
+  ros::Publisher position_pub = nh_.advertise<geometry_msgs::Point>("/Position", 1000);
 
 
   while (ros::ok()) {
@@ -144,9 +108,9 @@ int main(int argc, char **argv) {
     }
 
 
-    _msg.joint_1 = End_Pos.x();
-    _msg.joint_2 = End_Pos.y();
-    _msg.joint_3 = End_Pos.z();
+    _msg.x = End_Pos.x();
+    _msg.y = End_Pos.y();
+    _msg.z = End_Pos.z();
 
     // std::cin>>x>>y>>z;
 
@@ -160,7 +124,7 @@ int main(int argc, char **argv) {
     // std::cout << "z : "<< End_Pos.z() << std::endl;
     // std::cout << "Time : "<< Time_Start << std::endl;
 
-    joint_pub.publish(_msg);
+    position_pub.publish(_msg);
 
     ros::spinOnce();
   }

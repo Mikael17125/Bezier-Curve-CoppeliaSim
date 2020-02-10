@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   message_generation
-  manipulator_msgs
+  geometry_msgs
 )
 
 ################################################
