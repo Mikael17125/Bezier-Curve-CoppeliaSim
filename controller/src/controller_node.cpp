@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 
     switch (sw) {
       case 1:
-        std::cout << "1" << std::endl;
+        // std::cout << "1" << std::endl;
         End_Pos = bezier_curve(End,Inter,Start,inc);
         if(inc > 1){
           inc = 0;
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
         }
         break;
       case 2:
-      std::cout << "2" << std::endl;
+      // std::cout << "2" << std::endl;
         End_Pos = bezier_curve(Start,Inter,End,inc);
         if(inc > 1){
           inc = 0;
